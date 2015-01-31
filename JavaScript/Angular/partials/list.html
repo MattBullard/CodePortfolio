@@ -1,0 +1,57 @@
+<section class="artistpage">
+    <div class="search">
+        <h1>Artist Directory</h1>
+        <label>Search:</label>
+        <input ng-model="query" placeholder="Search for artists" autofocus>
+        <label class="formgroup">by:
+            <select ng-model="artistOrder">
+                <option value="name">Name</option>
+                <option value="reknown">Reknown</option>
+            </select>
+        </label>
+        <label class="formgroup">
+            <input type="radio" ng-model="direction" name="direction" checked>
+            Ascending
+        </label>
+        <label class="formgroup">
+            <input type="radio" ng-model="direction" name="direction" value="reverse">
+            Descending
+        </label>
+        
+    </div>
+    
+    <!-- by using the directive ng-show  this will only show the data from the data-set when query is true -->
+    <ul class="artistlist" ng-show="query">
+        <!-- 
+            using the ng-repeat directive we are able to loop 
+            through our array and feed that data via the scope 
+            variable to our HTML template
+        -->
+        
+        <!-- limitTo is a filter that will limit the number of records shown.  | limitTo:  -->
+        
+        <!-- 
+        	by adding the directive ng-animate, this give us access to additional effects as a result of the animation
+            and you can target these events in the css file -- .artist.ng-enter.ng.enter-active, .artist.ng-leave { }
+        -->
+        
+        <li ng-animate="'animate'" class="artist cf" ng-repeat="item in artists | filter: query | orderBy: artistOrder:direction | limitTo: 8 ">
+            <!--
+                we must use the ng-src tag to prevent images from loading faster than the Angular framework and causing an error
+            -->
+            
+            <!-- 
+            	item is an array and will have an index number.
+                the link sets up the route you want to take as well as passing some data via the URL to the router
+            -->
+            <a href="#/details/{{artists.indexOf(item)}}">
+	            <img ng-src="./images/{{item.shortname}}_tn.jpg" alt="Photo of {{item.name}}">
+                <div class="info">
+                    <!-- uppercase is a fliter -->
+                    <h2>{{item.name}}</h2>
+                    <h3>{{item.reknown}}</h3>
+                </div>
+            </a>
+        </li>
+    </ul>
+</section>

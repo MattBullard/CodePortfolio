@@ -1,0 +1,17 @@
+<section class="artistinfo">
+    <div class="artist cf" ng-model="artists">
+    <a href="#/details/{{prevItem}}" class="btn btn-left">&lt;</a>
+    <a href="#/details/{{nextItem}}" class="btn btn-right">&gt;</a>
+    	<!-- 
+        	whichItem comes from the route that identifies the link that was clicked on
+            which item is defined iin the $scope variable in the controller.
+        -->
+	    <h1>{{artists[whichItem].name}}</h1>
+        <div class='info'>
+            <h3>{{artists[whichItem].reknown}}</h3>
+            <img ng-src="./images/{{artists[whichItem].shortname}}_tn.jpg" alt="Photo of {{artists[whichItem].name}}">
+            <div class="bio">{{artists[whichItem].bio}}</div>
+        </div>
+    </div>
+    <a href="index.html#/list">&laquo; Back to search</a>
+</section>

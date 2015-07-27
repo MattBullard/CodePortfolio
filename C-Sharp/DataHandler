@@ -1,0 +1,257 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Acg
+{
+    class DataHandler
+    {
+        public Random rnd = new Random();
+
+        private List<String> cardTraits;
+        private List<String> cardTypes;
+        private List<String> cardSets;
+
+        // the default raw data from the file.
+        private List<String> rawCardData_Character;
+
+        // based on the current card filters, these will be refered to.
+        private List<String> filteredCardData_Character;
+
+        private String cardSet = "";
+        private String cardName = "";
+        private String cardType = "";
+
+
+        public DataHandler()
+        {
+            mustExit = false;
+
+            filters = "";
+
+            rawCardData_Character = new List<string>();
+
+            filteredCardData_Character = new List<string>();
+
+            populateCardTraits();
+            populateCardTypes();
+            populateCardSets();
+        }
+
+        public void loadDataFile()
+        {
+            String allLines;
+            string[] tmp;
+
+            try
+            {
+                // a synchronous read operation
+                // when you create the instance of the StreamReader class, you provide 
+                // the relative or absolute path to the file. 
+                using (StreamReader sr = new StreamReader("data.txt"))
+                {
+                    allLines = sr.ReadToEnd(); // reads the whole file.
+                }
+            }
+            catch (Exception e)
+            {
+                DialogResult dialogResult = MessageBox.Show("The required card data file is not found and the application must exit.", "File Not Found", MessageBoxButtons.OK);
+
+                return;
+            }
+
+            // break up the incoming data up by file number.
+            string[] files = allLines.Split('Q');
+
+            // character card file #1
+            tmp = files[0].Split('Z');
+            for (int i = 0; i < tmp.Count(); i++)
+            {
+                if (tmp[i].Length > 1)
+                {
+                    rawCardData_Character.Add(tmp[i]);
+                }
+            }
+
+            resetResults();
+
+        }
+
+        public bool MustExit {
+            get { return mustExit; }
+            set { mustExit = value; }        
+        }
+
+        public int LoadedCardCount_Character()
+        {
+            return filteredCardData_Character.Count();
+        }
+
+        public int LoadedCardCount_AdvScenLoc()
+        {
+            return filteredCardData_AdvScenLoc.Count();
+        }
+
+        public int LoadedCardCount_BoonBane()
+        {
+            return filteredCardData_BoonBane.Count();
+        }
+
+        public String getRawCardData_Character(int i)
+        {
+            if (i < 0) { 
+                return ""; // empty results
+            }
+            if (i < LoadedCardCount_Character())
+            {
+                return filteredCardData_Character[i];
+            }
+            return ""; // empty results
+        }
+
+        public int LoadedCardCount()
+        {
+            // this return the total number of cards loaded from the data file.
+            return (LoadedCardCount_Character() + LoadedCardCount_AdvScenLoc() + LoadedCardCount_BoonBane());
+        }
+
+        public String decodeString(String val)
+        {
+            String newVal = "";
+
+            for (int i = 0; i < val.Length; i++)
+            {
+                newVal += decodeLetter( val.Substring(i,1) );
+            }
+            return newVal;
+        }
+        
+        public String decodeCardListItem(String val)
+        {
+            string[] tmp = val.Split('+');
+            return tmp[0];
+        }
+
+        public void addFilter(String f, int rb)
+        {
+            // before adding a new filter, check to see if one exists with the same name,
+            // if so, modify the that filter.  If not, then add 
+            // the new filter at the end of the string
+            bool wasFound = false;
+
+            // open up the filters array
+            String[] openFilterList = filters.Split(',');
+
+            // search trough the filters looking for a filter 
+            for (int i = 0; i < openFilterList.Count(); i++)
+            {
+                String[] openFilter = openFilterList[i].Split(':');
+                String[] openNewFilter = f.Split(':');
+
+                if (openFilter[0] == openNewFilter[0])
+                {
+                    // the same filter was found
+                    wasFound = true;
+                    openFilterList[i] = openFilter[0] + ":" + openNewFilter[1]; // save new value
+                }
+            }
+
+            if (wasFound == true)
+            {
+                filters = "";
+                // close up the filters array
+                for (int i = 0; i < openFilterList.Count(); i++)
+                {
+                    if (openFilterList[i] != "")
+                    {
+                        filters += openFilterList[i] + ",";
+                    }
+                }
+            }
+            else
+            {
+                // this filter was not found and needs to be added.
+                // this will add a comma seperated filter
+                filters += f + ",";
+            }
+
+            if (rb == 0)
+            {
+                rebuildResults();
+            }
+        }
+        public void clearFilters(int rb)
+        {
+            filters = "";
+            if (rb == 0)
+            {
+                rebuildResults();
+            }
+        }
+
+        private void resetResults()
+        {
+            filteredCardData_Character = new List<string>();
+
+            for (int i = 0; i < rawCardData_Character.Count(); i++)
+            {
+                filteredCardData_Character.Add(rawCardData_Character[i]);
+            }
+
+
+        }
+
+        public void rebuildResults()
+        {
+            // this will start with the raw data and build the 
+            // filtered data using the list of filters.
+
+            // rest the currently filtered data
+            filteredCardData_Character = new List<string>();
+
+            // go through each collection of data and apply the assigned filters 
+            // to the data and save it in the filter data collection.
+            for (int i = 0; i < rawCardData_Character.Count(); i++)
+            {
+                if (doesThisCardGetAdded(rawCardData_Character[i]) == true)
+                {
+                    filteredCardData_Character.Add(rawCardData_Character[i]);
+                }
+            }
+
+            
+        }
+
+        public void shuffleBoonBaneResults()
+        {
+            int n = filteredCardData_BoonBane.Count;
+
+            while (n > 1) {
+                int k = (rnd.Next(0, n) % n);
+                n--;
+                string value = filteredCardData_BoonBane[k];
+                filteredCardData_BoonBane[k] = filteredCardData_BoonBane[n];
+                filteredCardData_BoonBane[n] = value;
+            }
+        }
+
+        public List<String> getCardTraits()
+        {
+            return cardTraits;
+        }
+        public List<String> getCardTypes()
+        {
+            return cardTypes;
+        }
+        public List<String> getCardSets()
+        {
+            return cardSets;
+        }
+
+        
+    }
+}

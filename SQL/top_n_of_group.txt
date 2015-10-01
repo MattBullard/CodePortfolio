@@ -1,0 +1,9 @@
+WITH TOPTEN AS (
+    SELECT *, ROW_NUMBER() 
+    over (
+        PARTITION BY [group_by_field] 
+        order by [prioritise_field]
+    ) AS RowNo 
+    FROM [table_name]
+)
+SELECT * FROM TOPTEN WHERE RowNo <= 10

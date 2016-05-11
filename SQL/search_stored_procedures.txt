@@ -1,0 +1,5 @@
+SELECT OBJECT_NAME(M.object_id), M.*
+FROM sys.sql_modules M
+JOIN sys.procedures P
+ON M.object_id = P.object_id
+WHERE M.definition LIKE '%YourTable%'

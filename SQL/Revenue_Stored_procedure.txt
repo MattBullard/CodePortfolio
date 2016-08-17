@@ -38,14 +38,24 @@ if @CarrierMode = "Enterprise"
 		SET @ActualMode = 'AND CarrierMode=' + char(39) + 'Enterprise' + char(39) + ' '
 	End
 
-SET @SqlQuery1 = 'SELECT AgentName, SUM(Revenue) as Revenue, SUM(GP) as GP '
-SET @SqlQuery1 = @SqlQuery1 + 'FROM commissions_SalesByTerritory_history '
-SET @SqlQuery1 = @SqlQuery1 + 'WHERE SalesGroupID = ' + char(39) + @SalesGroupID + char(39) 
+
+CREATE TABLE [dbo].[#Temp_TblCommissiond](
+	[AgentName] [nvarchar](50) ,
+	[Revenue] [Decimal](14,2) ,
+	[GP] [Decimal](14,2)
+)
+
+SET @SqlQuery1 = 'INSERT INTO [dbo].[#Temp_TblCommissiond] '
+SET @SqlQuery1 = @SqlQuery1 + ' SELECT AgentName, SUM(Revenue) as Revenue, SUM(GP) as GP '
+SET @SqlQuery1 = @SqlQuery1 + ' FROM commissions_SalesByTerritory_history '
+SET @SqlQuery1 = @SqlQuery1 + ' WHERE SalesGroupID = ' + char(39) + @SalesGroupID + char(39) 
 SET @SqlQuery1 = @SqlQuery1 + ' AND DateStart = ' + char(39)  + @StartDate + char(39) 
 SET @SqlQuery1 = @SqlQuery1 + ' AND DateEnd = ' + char(39)  + @EndDate + char(39) + ' ' + @ActualMode
-SET @SqlQuery1 = @SqlQuery1 + 'GROUP BY AgentName '
-SET @SqlQuery1 = @SqlQuery1 + 'ORDER BY AgentName '
+SET @SqlQuery1 = @SqlQuery1 + ' GROUP BY AgentName '
+SET @SqlQuery1 = @SqlQuery1 + ' ORDER BY AgentName '
 
 Print @SqlQuery1
 
 EXEC(@SqlQuery1)
+
+SELECT * FROM [dbo].[#Temp_TblCommissiond] ORDER BY AgentName

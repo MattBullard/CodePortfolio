@@ -1,0 +1,51 @@
+USE [Collect]
+GO
+/****** Object:  StoredProcedure [dbo].[collect_details]    Script Date: 8/17/2016 12:30:52 PM ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+
+
+ALTER PROCEDURE [dbo].[collect_details]
+(
+@RowCount int = 0 output,
+@SalesGroupID varchar(50) = '',
+@StartDate varchar(50) = '',
+@EndDate varchar(50) = '',
+@CarrierMode varchar(50) = ''
+)
+AS
+
+Declare @SqlQuery1 varchar(4000)
+Declare @ActualMode varchar(100)
+
+Set nocount on
+Set ansi_warnings off
+
+if @CarrierMode = "LTL"
+	Begin
+		SET @ActualMode = 'AND (CarrierMode=' + char(39) + 'LTL' + char(39) + ' OR CarrierMode=' + char(39) + 'Volume' + char(39) + ') '
+	End
+
+if @CarrierMode = "Truckload"
+	Begin
+		SET @ActualMode = 'AND (CarrierMode=' + char(39) + 'Truckload' + char(39) + ' OR CarrierMode=' + char(39) + 'Expedite' + char(39) + ' OR CarrierMode=' + char(39) + ' No Carrier' + char(39) + ') '
+	End
+
+if @CarrierMode = "Enterprise"
+	Begin
+		SET @ActualMode = 'AND CarrierMode=' + char(39) + 'Enterprise' + char(39) + ' '
+	End
+
+SET @SqlQuery1 = 'SELECT AgentName, SUM(Revenue) as Revenue, SUM(GP) as GP '
+SET @SqlQuery1 = @SqlQuery1 + 'FROM commissions_SalesByTerritory_history '
+SET @SqlQuery1 = @SqlQuery1 + 'WHERE SalesGroupID = ' + char(39) + @SalesGroupID + char(39) 
+SET @SqlQuery1 = @SqlQuery1 + ' AND DateStart = ' + char(39)  + @StartDate + char(39) 
+SET @SqlQuery1 = @SqlQuery1 + ' AND DateEnd = ' + char(39)  + @EndDate + char(39) + ' ' + @ActualMode
+SET @SqlQuery1 = @SqlQuery1 + 'GROUP BY AgentName '
+SET @SqlQuery1 = @SqlQuery1 + 'ORDER BY AgentName '
+
+Print @SqlQuery1
+
+EXEC(@SqlQuery1)

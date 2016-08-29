@@ -1,0 +1,22 @@
+/*
+
+This selects the last day of the month from all dates listed in a column named theDate
+
+Example:
+2016-06-30
+2016-07-31
+2016-08-31
+
+*/
+
+SELECT DISTINCT 
+concat(Year(theDate),'-', RIGHT('0' + RTRIM(month(theDate)),2 ),'-',
+datediff(
+	day, 
+	(concat(Year(theDate),'-',month(theDate),'-01')), 
+	dateadd(month, 1, concat(Year(theDate),'-',month(theDate),'-01'))
+)) as 'end_of_month'
+
+FROM Table
+
+

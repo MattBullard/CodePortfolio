@@ -1,0 +1,74 @@
+USE [Collections]
+GO
+/****** Object:  StoredProcedure [dbo].[procedure_name]  ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+
+
+ALTER PROCEDURE [dbo].[procedure_name]  
+(   
+	@CustomerName varchar(30) = '' ,
+    @Amount char(1) = 0,
+	@RowCount int output
+)
+AS
+Set nocount on
+Set ansi_warnings off
+SET ANSI_NULLS ON
+
+Declare @Cmd int
+Declare @CustomerNumber varchar(12)
+Declare @SqlQuery varchar(4000)
+Declare @WhereQuery varchar(500)
+
+Set @Cmd = 0
+SET @CustomerNumber = 0
+Set @SqlQuery = ''
+Set @WhereQuery = ''
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[#Temp_Table]') AND type in (N'U'))
+DROP TABLE [dbo].[#Temp_Temp_Table]
+
+CREATE TABLE [dbo].[#Temp_Temp_Table](
+	[CustNbr] [nvarchar](15) ,
+	[Amount] Money NULL,
+	[OldDate] Datetime NULL,
+	[Days] int NULL,
+	[SortColumn][char](1) NULL
+	)
+
+If LTrim(@CustomerName) <> ''
+	Begin
+		Set @Cmd = 2
+		Set @WhereQuery  = ' (RTRIM(CUSTNAME) LIKE ' + char(39) +  '%' + LTrim(@CustomerName) + '%' + char(39) + ' '
+	End
+
+IF @Cmd = 0 /** **/
+	Begin
+		Set @SqlQuery = 'INSERT INTO #Temp_TblPastDue(CustNbr, Amount, OldDate, Days, SortColumn) 
+			SELECT CustNbr, Amt, NewDate, 0, ' + char(39) + 'B' + char(39) + ' AS SortColumn 
+			FROM Table001 t1
+			LEFT JOIN Table002 t2 WITH (NOLOCK) ON t1.CustNbr = t2. LEFT OUTER JOIN
+			WHERE (NOT (RTRIM(t1.DocumentNbr) LIKE ' + char(39) + 'PYMNT%' + char(39) + '))' + @WhereQuery
+	End
+Else
+	Begin
+		Set @SqlQuery = 'INSERT INTO #Temp_TblPastDue(CustNbr, Amount, OldDate, Days, SortColumn) 
+			SELECT CustNbr, Amt, NewDate, 0, ' + char(39) + 'B' + char(39) + ' AS SortColumn 
+			FROM Table001 t1
+			LEFT JOIN Table002 t2 WITH (NOLOCK) ON t1.CustNbr = t2. LEFT OUTER JOIN
+			WHERE (NOT (RTRIM(t1.DocumentNbr) LIKE ' + char(39) + 'CREDIT%' + char(39) + '))' + @WhereQuery
+
+	End	
+
+EXEC(@SqlQuery)
+
+
+
+SELECT Top 50 [CustNbr], [Amount], [OldDate], [Days]
+FROM  #Temp_Temp_Table
+ORDER BY SortColumn
+                    
+Select @RowCount=@@ROWCOUNT

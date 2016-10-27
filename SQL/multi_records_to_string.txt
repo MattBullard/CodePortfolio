@@ -1,0 +1,16 @@
+-- This is how you get the multiple rows of data to appear in a single sting
+
+Select Main.SubjectID,
+       Left(Main.Students,Len(Main.Students)-1) As "Students"
+From
+    (
+        Select distinct ST2.SubjectID, 
+            (
+                Select ST1.StudentName + ',' AS [text()]
+                From dbo.Students ST1
+                Where ST1.SubjectID = ST2.SubjectID
+                ORDER BY ST1.SubjectID
+                For XML PATH ('')
+            ) [Students]
+        From dbo.Students ST2
+    ) [Main]

@@ -1,0 +1,18 @@
+Options +FollowSymLinks -MultiViews
+RewriteEngine on
+RewriteBase /
+
+#Header add Access-Control-Allow-Origin "*"
+
+<FilesMatch "\.(eot|font.css|otf|ttc|ttf|woff)$">
+    Header set Access-Control-Allow-Origin "*"
+</FilesMatch>
+
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.+)$ index.php?x=$1 [L,QSA]
+
+
+#RewriteRule ^([^/]+)/?$ index.php?xx=$1 [L,QSA]
+#RewriteRule ^([^/]+)/([^/]+)?$ index.php?xx=$1&yy=$2 [L,QSA]
+#RewriteRule ^([^/]+)/([^/]+)/([^/]+)?$ index.php?xx=$1&yy=$2&zz=$3 [L,QSA]
